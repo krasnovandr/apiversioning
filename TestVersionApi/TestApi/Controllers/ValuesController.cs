@@ -5,27 +5,33 @@ using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using TestApi.Configuration;
 
 namespace TestApi.Controllers
 {
     [Route("api/[controller]")]
     public class ValuesController : Controller
     {
-        private readonly string _topicName = Startup.Configuration["ServiceBusSettings:TopicName"];
-        private readonly string _connectionString = Startup.Configuration["ServiceBusSettings:ConnectionString"];
+        private readonly MainSettings _settings;
+
+        public ValuesController(IOptions<MainSettings> settings)
+        {
+            _settings = settings.Value;
+        }
+
         // GET api/values
         [HttpGet]
         public async Task<string> Get()
         {
-            var messageBody = "Hello v2.0.0.0";
-            var sendClient = new TopicClient(_connectionString, _topicName);
+            var sendClient = new TopicClient(_settings.ServiceBusSettings.ConnectionString, _settings.ServiceBusSettings.TopicName);
 
-            var message = new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageBody)));
+            var message = new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(_settings.MessageToPush)));
 
             await sendClient.SendAsync(message);
 
-            return messageBody;
+            return _settings.MessageToPush;
         }
 
         // GET api/values/5

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
+using TestApi.Configuration;
 
 namespace TestApi
 {
@@ -25,7 +26,9 @@ namespace TestApi
                 c.SwaggerDoc("v2", new Info { Title = "Second Endpoint", Version = "v2" });
             });
 
-            services.Configure<IConfiguration>(Configuration);
+            services.AddOptions();
+            services.Configure<MainSettings>(Configuration.GetSection("MainSettings"));
+            services.AddSingleton(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -44,6 +47,14 @@ namespace TestApi
             }
 
             app.UseMvc();
+
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddEnvironmentVariables();
+
+            Configuration = builder.Build();
         }
     }
 }
