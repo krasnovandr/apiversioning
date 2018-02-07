@@ -40,7 +40,7 @@ namespace TestWebJob
 
             var topicName = ConfigurationManager.AppSettings["TopicName"];
             var version = ConfigurationManager.AppSettings["Version"];
-            var subscriptionName = string.Format(ConfigurationManager.AppSettings["SubscriptionName"], version);
+            var subscriptionName = ConfigurationManager.AppSettings["SubscriptionName"];
        
             if (nameSpace.SubscriptionExists(topicName, subscriptionName) == false)
             {
