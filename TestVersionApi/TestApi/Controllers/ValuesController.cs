@@ -26,13 +26,14 @@ namespace TestApi.Controllers
         public async Task<string> Get()
         {
             var sendClient = new TopicClient(_settings.ServiceBusSettings.ConnectionString, _settings.ServiceBusSettings.TopicName);
+            var messageBody = string.Format(_settings.MessageToPush, _settings.Version);
 
-            var message = new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(_settings.MessageToPush)));
-            message.UserProperties.Add("Version", "V1");
+            var message = new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageBody)));
+            message.UserProperties.Add("Version", _settings.Version);
 
             await sendClient.SendAsync(message);
 
-            return _settings.MessageToPush;
+            return messageBody;
         }
 
         // GET api/values/5

@@ -23,7 +23,7 @@ namespace TestApi
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v2", new Info { Title = "Second Endpoint", Version = "v2" });
+                c.SwaggerDoc("v1", new Info { Title = "TestEndpoint", Version = "v1" });
             });
 
             services.AddOptions();
@@ -38,7 +38,7 @@ namespace TestApi
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v2/swagger.json", "My API V2");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API");
             });
 
             if (env.IsDevelopment())

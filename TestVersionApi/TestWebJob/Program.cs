@@ -18,7 +18,7 @@ namespace TestWebJob
         static void Main()
         {
             var config = new JobHostConfiguration();
-
+            CreateSubscription();
             if (config.IsDevelopment)
             {
                 config.UseDevelopmentSettings();
@@ -30,15 +30,25 @@ namespace TestWebJob
             // The following code ensures that the WebJob will be running continuously
             host.RunAndBlock();
 
+
+        }
+
+        private static void CreateSubscription()
+        {
             var nameSpace = NamespaceManager.CreateFromConnectionString(ConfigurationManager
                 .ConnectionStrings["AzureWebJobsServiceBus"].ConnectionString);
 
-            var filter = new TrueFilter();
-            filter.Parameters.Add("df", "dfdf");
+            var topicName = ConfigurationManager.AppSettings["TopicName"];
+            var version = ConfigurationManager.AppSettings["Version"];
+            var subscriptionName = string.Format(ConfigurationManager.AppSettings["SubscriptionName"], version);
+       
+            if (nameSpace.SubscriptionExists(topicName, subscriptionName) == false)
+            {
+                var filter = new SqlFilter($"Version = '{version}'");
 
-            nameSpace.CreateSubscription(
-                ConfigurationManager.AppSettings["TopicName"],
-                ConfigurationManager.AppSettings["SubscriptionName"],filter);
+                nameSpace.CreateSubscription(topicName, subscriptionName, filter);
+            }
+
         }
     }
 }
