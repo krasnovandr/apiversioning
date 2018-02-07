@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
+using Microsoft.ServiceBus;
+using Microsoft.ServiceBus.Messaging;
 
 namespace TestWebJob
 {
@@ -26,6 +29,16 @@ namespace TestWebJob
             var host = new JobHost(config);
             // The following code ensures that the WebJob will be running continuously
             host.RunAndBlock();
+
+            var nameSpace = NamespaceManager.CreateFromConnectionString(ConfigurationManager
+                .ConnectionStrings["AzureWebJobsServiceBus"].ConnectionString);
+
+            var filter = new TrueFilter();
+            filter.Parameters.Add("df", "dfdf");
+
+            nameSpace.CreateSubscription(
+                ConfigurationManager.AppSettings["TopicName"],
+                ConfigurationManager.AppSettings["SubscriptionName"],filter);
         }
     }
 }
