@@ -28,6 +28,7 @@ namespace TestApi.Controllers
             var sendClient = new TopicClient(_settings.ServiceBusSettings.ConnectionString, _settings.ServiceBusSettings.TopicName);
 
             var message = new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(_settings.MessageToPush)));
+            message.UserProperties.Add("Version", "V1");
 
             await sendClient.SendAsync(message);
 
