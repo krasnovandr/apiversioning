@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Common;
 using Microsoft.ApplicationInsights;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Options;
@@ -16,9 +19,11 @@ namespace TestApi.Controllers
     {
         private readonly MainSettings _settings;
 
-        public ValuesController(IOptions<MainSettings> settings)
+        private readonly IDataProtector _protector;
+        public ValuesController(IOptions<MainSettings> settings, IDataProtectionProvider provider)
         {
             _settings = settings.Value;
+            _protector = provider.CreateProtector(GetType().FullName);
         }
 
         // GET api/values
@@ -28,7 +33,9 @@ namespace TestApi.Controllers
             var sendClient = new TopicClient(_settings.ServiceBusSettings.ConnectionString, _settings.ServiceBusSettings.TopicName);
             var messageBody = string.Format(_settings.MessageToPush, _settings.Version);
 
-            var message = new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageBody)));
+            //var encryptedString = AesEncryption.EncryptString(messageBody, _settings.EncryptionKey);
+            var encryptedValue = _protector.Protect(Encoding.UTF8.GetBytes(messageBody));
+            var message = new Message(encryptedValue);
             message.UserProperties.Add("Version", _settings.Version);
 
             await sendClient.SendAsync(message);

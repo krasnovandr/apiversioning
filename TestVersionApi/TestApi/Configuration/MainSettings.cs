@@ -5,5 +5,6 @@
         public ServiceBusSettings ServiceBusSettings { get; set; }
         public string MessageToPush { get; set; }
         public string Version { get; set; }
+        public string EncryptionKey { get; set; }
     }
 }
