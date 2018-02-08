@@ -13,12 +13,16 @@ namespace TestWebJobDotNETCore
     using Microsoft.ServiceBus;
     using Microsoft.ServiceBus.Messaging;
 
+    using TestWebJob;
+
+    using TestWebJobDotNETCore.Configuration;
+
     class Program
     {
         static void Main(string[] args)
         {
             var configurationRoot = BuildConfiguration();
-            
+
             CreateSubscription(configurationRoot);
 
             Environment.SetEnvironmentVariable("AzureWebJobsDashboard", configurationRoot.GetConnectionString("AzureWebJobsDashboard"));
@@ -27,6 +31,14 @@ namespace TestWebJobDotNETCore
             var configuration = new JobHostConfiguration();
 
             configuration.UseServiceBus(new ServiceBusConfiguration() { ConnectionString = configurationRoot.GetConnectionString("AzureWebJobsServiceBus") });
+
+            var serviceCollection = new ServiceCollection();
+
+            ConfigureServices(serviceCollection, configurationRoot);
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            configuration.JobActivator = new JobActivator(serviceProvider);
 
             var host = new JobHost(configuration);
 
@@ -57,6 +69,21 @@ namespace TestWebJobDotNETCore
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
+        }
+
+        private static void ConfigureServices(IServiceCollection serviceCollection, IConfigurationRoot configurationRoot)
+        {
+            serviceCollection.AddDataProtection()
+                .UseCryptographicAlgorithms(
+                new AuthenticatedEncryptorConfiguration
+                {
+                    EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+                    ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+                });
+
+            serviceCollection.AddSingleton(configurationRoot);
+
+            serviceCollection.AddScoped<Functions, Functions>();
         }
     }
 }
