@@ -23,7 +23,7 @@ namespace TestApi.Controllers
         public ValuesController(IOptions<MainSettings> settings, IDataProtectionProvider provider)
         {
             _settings = settings.Value;
-            _protector = provider.CreateProtector("test");
+            _protector = provider.CreateProtector("CreateProtector");
         }
 
         // GET api/values

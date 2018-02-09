@@ -13,7 +13,7 @@ namespace TestWebJob
 
     public class Functions
     {
-        private static ServiceProvider serviceProvider;
+        private static readonly ServiceProvider ServiceProvider;
 
         static Functions()
         {
@@ -28,14 +28,14 @@ namespace TestWebJob
                         })
                         .SetApplicationName("testapp");
 
-            serviceProvider = serviceCollection.BuildServiceProvider();
+            ServiceProvider = serviceCollection.BuildServiceProvider();
         }
 
         // This function will get triggered/executed when a new message is written 
         // on an Azure Queue called queue.
         public static void ProcessQueueMessage([ServiceBusTrigger("%TopicName%", "%SubscriptionName%")] byte[] message, TextWriter log)
         {
-            var dataProtectionProvider = serviceProvider.GetService<IDataProtectionProvider>();
+            var dataProtectionProvider = ServiceProvider.GetService<IDataProtectionProvider>();
             
             var dataProtector = dataProtectionProvider.CreateProtector("CreateProtector");
 
