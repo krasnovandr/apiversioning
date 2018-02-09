@@ -1,11 +1,11 @@
-﻿using System.IO;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.WindowsAzure.Storage;
 using Swashbuckle.AspNetCore.Swagger;
 using TestApi.Configuration;
 
@@ -23,15 +23,20 @@ namespace TestApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //.PersistKeysToFileSystem(new DirectoryInfo(@"C:\keys"))
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Configuration["MainSettings:StorageConnectionString"]);
+            var client = storageAccount.CreateCloudBlobClient();
+            var container = client.GetContainerReference(Configuration["MainSettings:ContainerName"]);
+
             services.AddMvc();
-            services.AddDataProtection().UseCryptographicAlgorithms(
+            services.AddDataProtection()
+                .PersistKeysToAzureBlobStorage(container, "key.xml")
+                .UseCryptographicAlgorithms(
                 new AuthenticatedEncryptorConfiguration
                 {
                     EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
                     ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
                 })
-                .SetApplicationName("testapp"); 
+                .SetApplicationName(Configuration["MainSettings:ApplicationName"]); 
 
             services.AddSwaggerGen(c =>
             {

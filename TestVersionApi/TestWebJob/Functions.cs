@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System.Configuration;
+using System.IO;
 
 using Microsoft.Azure.WebJobs;
+using Microsoft.WindowsAzure.Storage;
 
 namespace TestWebJob
 {
@@ -19,14 +21,20 @@ namespace TestWebJob
         {
             var serviceCollection = new ServiceCollection();
 
+            var storageConnection = ConfigurationManager.ConnectionStrings["AzureWebJobsStorage"].ConnectionString;
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConnection);
+
+            var client = storageAccount.CreateCloudBlobClient();
+            var container = client.GetContainerReference(ConfigurationManager.AppSettings["ContainerName"]);
+
             serviceCollection.AddDataProtection()
+                .PersistKeysToAzureBlobStorage(container, "key.xml")
                 .UseCryptographicAlgorithms(
                     new AuthenticatedEncryptorConfiguration
-                        {
-                            EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
-                            ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-                        })
-                        .SetApplicationName("testapp");
+                    {
+                        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+                        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+                    }).SetApplicationName(ConfigurationManager.AppSettings["ApplicationName"]);
 
             ServiceProvider = serviceCollection.BuildServiceProvider();
         }
@@ -36,8 +44,8 @@ namespace TestWebJob
         public static void ProcessQueueMessage([ServiceBusTrigger("%TopicName%", "%SubscriptionName%")] byte[] message, TextWriter log)
         {
             var dataProtectionProvider = ServiceProvider.GetService<IDataProtectionProvider>();
-            
-            var dataProtector = dataProtectionProvider.CreateProtector("CreateProtector");
+
+            var dataProtector = dataProtectionProvider.CreateProtector(ConfigurationManager.AppSettings["PurporseString"]);
 
             var unprotect = dataProtector.Unprotect(message);
 

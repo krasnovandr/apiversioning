@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System.Text;
 using System.Threading.Tasks;
-using Common;
-using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using TestApi.Configuration;
 
 namespace TestApi.Controllers
@@ -23,7 +17,7 @@ namespace TestApi.Controllers
         public ValuesController(IOptions<MainSettings> settings, IDataProtectionProvider provider)
         {
             _settings = settings.Value;
-            _protector = provider.CreateProtector("CreateProtector");
+            _protector = provider.CreateProtector(_settings.PurporseString);
         }
 
         // GET api/values
@@ -32,14 +26,14 @@ namespace TestApi.Controllers
         {
             var sendClient = new TopicClient(_settings.ServiceBusSettings.ConnectionString, _settings.ServiceBusSettings.TopicName);
             var messageBody = string.Format(_settings.MessageToPush, _settings.Version);
-            
+
             var encryptedValue = _protector.Protect(Encoding.UTF8.GetBytes(messageBody));
-            
+
             var message = new Message(encryptedValue)
-                              {
-                                  ContentType = "application/octet-stream",
-                                  UserProperties = { { "Version", _settings.Version } }
-                              };
+            {
+                ContentType = "application/octet-stream",
+                UserProperties = { { "Version", _settings.Version } }
+            };
 
             await sendClient.SendAsync(message);
 
