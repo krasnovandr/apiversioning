@@ -28,7 +28,8 @@ namespace TestApi
                 {
                     EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
                     ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-                });
+                })
+                .SetApplicationName("testapp"); 
 
             services.AddSwaggerGen(c =>
             {

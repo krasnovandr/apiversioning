@@ -22,13 +22,13 @@ namespace TestWebJob
             this.dataProtectionProvider = dataProtectionProvider;
         }
 
-        public async Task ProcessQueueMessage([ServiceBusTrigger("hellotopic", "subscriptionv1")] string message, TextWriter log)
+        public async Task ProcessQueueMessage([ServiceBusTrigger("hellotopic", "subscriptionv1")] byte[] message, TextWriter log)
         {
-            var dataProtector = this.dataProtectionProvider.CreateProtector(this.GetType().FullName);
+            var dataProtector = this.dataProtectionProvider.CreateProtector("CreateProtector");
 
-            var unprotect = dataProtector.Unprotect(Encoding.UTF8.GetBytes(message));
+            var unprotect = dataProtector.Unprotect(message);
 
-            log.WriteLine(unprotect);
+            log.WriteLine(Encoding.UTF8.GetString(unprotect));
         }
     }
 }

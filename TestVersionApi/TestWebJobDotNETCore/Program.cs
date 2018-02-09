@@ -79,7 +79,8 @@ namespace TestWebJobDotNETCore
                 {
                     EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
                     ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-                });
+                })
+                .SetApplicationName("testapp");
 
             serviceCollection.AddSingleton(configurationRoot);
 
