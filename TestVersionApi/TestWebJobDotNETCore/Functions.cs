@@ -1,6 +1,7 @@
 ﻿using System.IO;
 
 using Microsoft.Azure.WebJobs;
+using Microsoft.ServiceBus.Messaging;
 
 namespace TestWebJob
 {
@@ -22,13 +23,12 @@ namespace TestWebJob
             this.dataProtectionProvider = dataProtectionProvider;
         }
 
-        public async Task ProcessQueueMessage([ServiceBusTrigger("hellotopic", "subscriptionv1")] string message, TextWriter log)
+        public void ProcessQueueMessage([ServiceBusTrigger("hellotopic", "subscriptionv1")] byte[] message, TextWriter log)
         {
-            var dataProtector = this.dataProtectionProvider.CreateProtector(this.GetType().FullName);
+           var dataProtector = dataProtectionProvider.CreateProtector("test");
 
-            var unprotect = dataProtector.Unprotect(Encoding.UTF8.GetBytes(message));
-
-            log.WriteLine(unprotect);
+            var unprotect = dataProtector.Unprotect(message);
+            log.WriteLine(Encoding.UTF8.GetString(unprotect));
         }
     }
 }
