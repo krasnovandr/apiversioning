@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.IO;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
@@ -22,6 +23,7 @@ namespace TestApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //.PersistKeysToFileSystem(new DirectoryInfo(@"C:\keys"))
             services.AddMvc();
             services.AddDataProtection().UseCryptographicAlgorithms(
                 new AuthenticatedEncryptorConfiguration

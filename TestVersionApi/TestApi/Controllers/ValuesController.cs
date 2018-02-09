@@ -23,7 +23,7 @@ namespace TestApi.Controllers
         public ValuesController(IOptions<MainSettings> settings, IDataProtectionProvider provider)
         {
             _settings = settings.Value;
-            _protector = provider.CreateProtector("CreateProtector");
+            _protector = provider.CreateProtector("test");
         }
 
         // GET api/values
@@ -32,8 +32,7 @@ namespace TestApi.Controllers
         {
             var sendClient = new TopicClient(_settings.ServiceBusSettings.ConnectionString, _settings.ServiceBusSettings.TopicName);
             var messageBody = string.Format(_settings.MessageToPush, _settings.Version);
-
-            //var encryptedString = AesEncryption.EncryptString(messageBody, _settings.EncryptionKey);
+            
             var encryptedValue = _protector.Protect(Encoding.UTF8.GetBytes(messageBody));
             
             var message = new Message(encryptedValue)
